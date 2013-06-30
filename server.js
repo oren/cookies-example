@@ -33,8 +33,8 @@ http.createServer(function (req, res) {
 
 console.log('Server running at http://127.0.0.1:3000/');
 
-function parseBody(req, cb) {
-  req.pipe(concat(function (body) { 
-    cb(qs.parse(body.toString())); 
+function parseBody(readableStream, cb) {
+  readableStream.pipe(concat(function (body) { 
+    cb(qs.parse(body.toString()));
   }));
 };
