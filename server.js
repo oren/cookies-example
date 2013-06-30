@@ -2,7 +2,8 @@ var http = require('http');
 var concat = require('concat-stream');
 var domain = require('domain');
 var qs = require('querystring');
-var loginHTML = '<form method="post"> <input name="username"> <input type="password" name="password"></form>';
+var loginHTML = 'Login\n<form method="post"><input name="username"> <input type="password" name="password"><input type="submit" value="Login"></form>';
+var registerHTML = 'Register\n<form method="post"><input name="username"><input type="password" name="password"><input type="submit" value="Register"></form>';
 
 http.createServer(function (req, res) {
   var reqd = domain.create();
@@ -29,12 +30,12 @@ http.createServer(function (req, res) {
   reqd.run(function () {
     if (req.url === '/' && req.method === 'GET') {
       res.writeHead(200, {'Content-Type': 'text/plain'});
-      res.end('Hello World\n');
+      res.end('welcome\n');
       return;
     }
 
     if (req.url === '/login' && req.method === 'GET') {
-      res.writeHead(200, {'Content-Type': 'text/plain'});
+      res.writeHead(200, {'Content-Type': 'text/html'});
       res.end(loginHTML);
       return;
     }
@@ -46,6 +47,24 @@ http.createServer(function (req, res) {
         console.dir(body);
       });
 
+      res.end();
+      return;
+    }
+
+    if (req.url === '/register' && req.method === 'GET') {
+      res.writeHead(200, {'Content-Type': 'text/html'});
+
+      res.end(registerHTML);
+      return;
+    }
+
+    if (req.url === '/register' && req.method === 'POST') {
+      // var cookies = new Cookies( req, res, keys );
+      // var unsigned;
+      // var signed;
+      // var tampered;
+      // cookies.set( "unsigned", "foo", { httpOnly: false } )
+      res.writeHead( 302, { "Location": "/" } )
       res.end();
       return;
     }
