@@ -1,34 +1,58 @@
 var http = require('http');
 var concat = require('concat-stream');
+var domain = require('domain');
 var qs = require('querystring');
 var loginHTML = '<form method="post"> <input name="username"> <input type="password" name="password"></form>';
 
 http.createServer(function (req, res) {
-  if (req.url === '/' && req.method === 'GET') {
-    res.writeHead(200, {'Content-Type': 'text/plain'});
-    res.end('Hello World\n');
-    return;
-  }
+  var reqd = domain.create();
 
-  if (req.url === '/login' && req.method === 'GET') {
-    res.writeHead(200, {'Content-Type': 'text/plain'});
-    res.end(loginHTML);
-    return;
-  }
+  // catch error that accured in the req and res streams
+  // for example - curl -d '' :3000/login
+  reqd.add(req);
+  reqd.add(res);
 
-  if (req.url === '/login' && req.method === 'POST') {
-    res.writeHead(200, {'Content-Type': 'text/plain'});
+  reqd.on('error', function(er) {
+    console.error('Error', er, req.url);
+    try {
+      res.writeHead(500);
+      res.end('Error occurred, sorry.');
+    } catch (er) {
+      console.error('Error sending 500', er, req.url);
+    }
+  });
 
-    parseBody(req, function (body) {
-      console.dir(body);
-    });
+  // catch error that accured in this blog
+  // for example throw(new Error('foo')); inside any route
+  // behind the curtain - wrapping the annonymous function in a try/catch and if we
+  // create new streams, it will add the stream into the domain (domain.add)
+  reqd.run(function () {
+    if (req.url === '/' && req.method === 'GET') {
+      res.writeHead(200, {'Content-Type': 'text/plain'});
+      res.end('Hello World\n');
+      return;
+    }
 
-    res.end();
-    return;
-  }
+    if (req.url === '/login' && req.method === 'GET') {
+      res.writeHead(200, {'Content-Type': 'text/plain'});
+      res.end(loginHTML);
+      return;
+    }
 
-  res.writeHead(404);
-  res.end('not found');
+    if (req.url === '/login' && req.method === 'POST') {
+      res.writeHead(200, {'Content-Type': 'text/plain'});
+
+      parseBody(req, function (body) {
+        console.dir(body);
+      });
+
+      res.end();
+      return;
+    }
+
+    res.writeHead(404);
+    res.end('not found');
+  });
 }).listen(3000, '127.0.0.1');
 
 console.log('Server running at http://127.0.0.1:3000/');
